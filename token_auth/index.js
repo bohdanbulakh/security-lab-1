@@ -31,10 +31,7 @@ class Session {
     }
 
     set(key, value) {
-        if (!value) {
-            value = {};
-        }
-        this.#sessions[key] = value;
+        this.#sessions[key] = value ?? {};
         this.#storeSessions();
     }
 
@@ -59,21 +56,11 @@ class Session {
 const sessions = new Session();
 
 app.use((req, res, next) => {
-    let currentSession = {};
-    let sessionId = req.get(SESSION_KEY);
+    const sessionId = req.get(SESSION_KEY);
+    const currentSession = sessionId && sessions.get(sessionId);
 
-    if (sessionId) {
-        currentSession = sessions.get(sessionId);
-        if (!currentSession) {
-            currentSession = {};
-            sessionId = sessions.init(res);
-        }
-    } else {
-        sessionId = sessions.init(res);
-    }
-
-    req.session = currentSession;
-    req.sessionId = sessionId;
+    req.session = currentSession || {};
+    req.sessionId = currentSession ? sessionId : sessions.init(res);
 
     onFinished(req, () => {
         const currentSession = req.session;
@@ -115,12 +102,7 @@ const users = [
 app.post('/api/login', (req, res) => {
     const { login, password } = req.body;
 
-    const user = users.find((user) => {
-        if (user.login == login && user.password == password) {
-            return true;
-        }
-        return false
-    });
+    const user = users.find((user) => user.login == login && user.password == password);
 
     if (user) {
         req.session.username = user.username;
