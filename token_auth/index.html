@@ -128,7 +128,7 @@
         if (token) {
             axios.get('/', {
                 headers: {
-                    Authorization: token
+                    Authorization: `Bearer ${token}`
                 }
             }).then((response) => {
                 const { username } = response.data;
